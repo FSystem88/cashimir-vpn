@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "VPN for Chrome",
+  "version": "1.0",
+  "description": "Позволяет включать и выключать подключение к SOCKS5-прокси с отображением текущего IP и автоматическим отключением при ошибках.",
+  "permissions": [
+    "proxy",
+    "storage",
+    "scripting",
+    "activeTab",
+    "webRequest",
+    "webRequestBlocking",
+    "notifications"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
