@@ -1,6 +1,8 @@
+/* styles.css */
+
 body {
   font-family: Arial, sans-serif;
-  width: 250px;
+  width: 300px;
   padding: 20px;
   background-color: #f5f5f5;
 }
@@ -11,41 +13,123 @@ body {
   align-items: center;
 }
 
-button {
+/* Стили для формы */
+#proxyForm {
+  width: 100%;
+}
+
+#proxyForm h2 {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+#proxyForm form {
+  display: flex;
+  flex-direction: column;
+}
+
+#proxyForm label {
+  margin: 5px 0 2px;
+  font-size: 14px;
+}
+
+#proxyForm input {
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#proxyForm button {
+  padding: 10px;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%; /* растянуть по ширине */
+}
+
+#proxyForm button:hover {
+  background-color: #0056b3;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 14px;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* Стили для панели управления прокси */
+#proxyControl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Кнопка переключения VPN */
+#toggleBtn {
   width: 150px;
   height: 150px;
+  margin: 20px 0;
   border: none;
   border-radius: 50%;
   cursor: pointer;
   color: white;
-  font-size: 18px;
+  font-size: 24px;
   font-weight: bold;
   transition: background-color 0.3s ease, transform 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
 }
 
-button.enabled {
-  background-color: #dc3545; /* Красный для включенного состояния (отключить) */
+#toggleBtn.enabled {
+  background-color: #dc3545; /* Красный для состояния VPN включен (OFF) */
 }
 
-button.disabled {
-  background-color: #28a745; /* Зеленый для отключенного состояния (включить) */
+#toggleBtn.disabled {
+  background-color: #28a745; /* Зеленый для состояния VPN выключен (ON) */
 }
 
-button.loading {
+#toggleBtn.loading {
   background-color: #6c757d; /* Серый для состояния загрузки */
   cursor: default;
-  transform: scale(1);
 }
 
-button:hover:not(.loading) {
+#toggleBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+#toggleBtn:hover:not(:disabled) {
   transform: scale(1.05);
 }
 
+/* Кнопка Logout */
+#logoutBtn {
+  padding: 10px 20px;
+  background-color: #dc3545; /* Красный */
+  border: none;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+#logoutBtn:hover {
+  background-color: #ba2231;
+}
+
+/* Логи */
 #logs {
+  margin-top: 10px;
   text-align: center;
   width: 100%;
 }
@@ -57,4 +141,9 @@ button:hover:not(.loading) {
 
 #status {
   font-weight: bold;
+}
+
+/* Скрытые элементы */
+.hidden {
+  display: none;
 }

@@ -7,10 +7,35 @@
 </head>
 <body>
   <div class="container">
-    <button id="toggleBtn">Загрузка...</button>
-    <div id="logs">
-      <p>Текущий IP: <span id="currentIP">Загрузка...</span></p>
-      <p>Статус подключения: <span id="status">Проверка...</span></p>
+    <!-- Форма для ввода данных прокси -->
+    <div id="proxyForm" class="hidden">
+      <h2>Настройки Прокси</h2>
+      <form id="form">
+        <label for="proxyIP">IP:</label>
+        <input type="text" id="proxyIP" name="proxyIP" required>
+        
+        <label for="proxyPort">Порт:</label>
+        <input type="number" id="proxyPort" name="proxyPort" required>
+        
+        <label for="proxyLogin">Логин:</label>
+        <input type="text" id="proxyLogin" name="proxyLogin" required>
+        
+        <label for="proxyPassword">Пароль:</label>
+        <input type="password" id="proxyPassword" name="proxyPassword" required>
+        
+        <button type="submit" id="connectBtn">Connect</button>
+      </form>
+      <div id="formError" class="error"></div>
+    </div>
+    
+    <!-- Кнопка переключения прокси и кнопка logout -->
+    <div id="proxyControl" class="hidden">
+      <button id="toggleBtn">Загрузка...</button>
+      <div id="logs">
+        <p>Текущий IP: <span id="currentIP">Загрузка...</span></p>
+        <p>Статус подключения: <span id="status">Проверка...</span></p>
+      </div>
+      <button id="logoutBtn">Logout</button>
     </div>
   </div>
   <script src="popup.js"></script>
