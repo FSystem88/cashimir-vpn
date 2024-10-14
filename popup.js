@@ -1,42 +1,63 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const enableBtn = document.getElementById("enableBtn");
-  const disableBtn = document.getElementById("disableBtn");
+  const toggleBtn = document.getElementById("toggleBtn");
   const currentIPSpan = document.getElementById("currentIP");
   const statusSpan = document.getElementById("status");
 
-  function updateButtons(proxyEnabled) {
+  // Функция для установки состояния кнопки
+  function setButtonState(proxyEnabled) {
     if (proxyEnabled) {
-      enableBtn.classList.add("active");
-      disableBtn.classList.remove("active");
-      enableBtn.disabled = true;
-      disableBtn.disabled = false;
+      toggleBtn.textContent = "OFF";
+      toggleBtn.classList.remove("disabled", "loading");
+      toggleBtn.classList.add("enabled");
     } else {
-      disableBtn.classList.add("active");
-      enableBtn.classList.remove("active");
-      disableBtn.disabled = true;
-      enableBtn.disabled = false;
+      toggleBtn.textContent = "ON";
+      toggleBtn.classList.remove("enabled", "loading");
+      toggleBtn.classList.add("disabled");
     }
   }
 
+  // Функция для отображения состояния загрузки
+  function setLoadingState() {
+    toggleBtn.textContent = "Загрузка...";
+    toggleBtn.classList.remove("enabled", "disabled");
+    toggleBtn.classList.add("loading");
+    toggleBtn.disabled = true;
+  }
+
+  // Функция для снятия состояния загрузки
+  function clearLoadingState() {
+    toggleBtn.disabled = false;
+  }
+
+  // Получение текущего статуса прокси при загрузке
   chrome.runtime.sendMessage({ action: "getProxyStatus" }, (response) => {
-    updateButtons(response.proxyEnabled);
+    setButtonState(response.proxyEnabled);
     fetchAndUpdateIP();
   });
 
-  enableBtn.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ action: "enableProxy" }, (response) => {
-      updateButtons(true);
-      fetchAndUpdateIP();
+  // Обработчик клика по кнопке
+  toggleBtn.addEventListener("click", () => {
+    setLoadingState();
+    chrome.runtime.sendMessage({ action: "getProxyStatus" }, (response) => {
+      if (response.proxyEnabled) {
+        // Если прокси включен, отключаем его
+        chrome.runtime.sendMessage({ action: "disableProxy" }, (response) => {
+          setButtonState(false);
+          clearLoadingState();
+          fetchAndUpdateIP();
+        });
+      } else {
+        // Если прокси отключен, включаем его
+        chrome.runtime.sendMessage({ action: "enableProxy" }, (response) => {
+          setButtonState(true);
+          clearLoadingState();
+          fetchAndUpdateIP();
+        });
+      }
     });
   });
 
-  disableBtn.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ action: "disableProxy" }, (response) => {
-      updateButtons(false);
-      fetchAndUpdateIP();
-    });
-  });
-
+  // Функция для получения и обновления IP
   function fetchAndUpdateIP() {
     fetch("https://api.ipify.org?format=json")
       .then(response => response.json())
@@ -51,6 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  // Функция для проверки соответствия IP
   function checkIP(ip) {
     const vpnIP = "";  // вставить IP
     if (ip === vpnIP) {
@@ -62,9 +84,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Обработчик изменений в хранилище
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && changes.proxyEnabled) {
-      updateButtons(changes.proxyEnabled.newValue);
+      setButtonState(changes.proxyEnabled.newValue);
       fetchAndUpdateIP();
     }
   });

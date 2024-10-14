@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "VPN for Chrome",
-  "version": "1.0",
+  "name": "CASHIMIR VPN",
+  "version": "1.6",
   "description": "Позволяет включать и выключать подключение к SOCKS5-прокси с отображением текущего IP и автоматическим отключением при ошибках.",
   "permissions": [
     "proxy",

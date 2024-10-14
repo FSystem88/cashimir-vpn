@@ -1,7 +1,8 @@
 body {
   font-family: Arial, sans-serif;
   width: 250px;
-  padding: 10px;
+  padding: 20px;
+  background-color: #f5f5f5;
 }
 
 .container {
@@ -11,39 +12,49 @@ body {
 }
 
 button {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
+  width: 150px;
+  height: 150px;
   border: none;
-  border-radius: 5px;
+  border-radius: 50%;
   cursor: pointer;
   color: white;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
-#enableBtn {
-  background-color: #28a745;
+button.enabled {
+  background-color: #dc3545; /* Красный для включенного состояния (отключить) */
 }
 
-#enableBtn.active {
-  background-color: #218838;
+button.disabled {
+  background-color: #28a745; /* Зеленый для отключенного состояния (включить) */
 }
 
-#disableBtn {
-  background-color: #dc3545;
+button.loading {
+  background-color: #6c757d; /* Серый для состояния загрузки */
+  cursor: default;
+  transform: scale(1);
 }
 
-#disableBtn.active {
-  background-color: #c82333;
+button:hover:not(.loading) {
+  transform: scale(1.05);
 }
 
 #logs {
-  margin-top: 10px;
-  text-align: left;
+  text-align: center;
   width: 100%;
 }
 
 #logs p {
   margin: 5px 0;
   font-size: 14px;
+}
+
+#status {
+  font-weight: bold;
 }

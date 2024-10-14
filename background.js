@@ -2,7 +2,7 @@ const PROXY_CONFIG = {
   mode: "fixed_servers",
   rules: {
     singleProxy: {
-      scheme: "socks5", 
+      scheme: "socks5",
       host: "", // ВСТАВИТЬ IP
       port: 1080 // ИЗМЕНИТЬ PORT
     },
@@ -49,12 +49,16 @@ function setProxy(config) {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "enableProxy") {
     setProxy(PROXY_CONFIG);
-    chrome.storage.local.set({ proxyEnabled: true });
-    sendResponse({ status: "Proxy enabled" });
+    chrome.storage.local.set({ proxyEnabled: true }, () => {
+      sendResponse({ status: "Proxy enabled" });
+    });
+    return true;
   } else if (message.action === "disableProxy") {
     setProxy(DIRECT_CONFIG);
-    chrome.storage.local.set({ proxyEnabled: false });
-    sendResponse({ status: "Proxy disabled" });
+    chrome.storage.local.set({ proxyEnabled: false }, () => {
+      sendResponse({ status: "Proxy disabled" });
+    });
+    return true;
   } else if (message.action === "getProxyStatus") {
     chrome.storage.local.get("proxyEnabled", (data) => {
       sendResponse({ proxyEnabled: data.proxyEnabled || false });
