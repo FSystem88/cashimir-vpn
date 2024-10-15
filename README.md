@@ -1,45 +1,37 @@
-<h1>VPN for Chrome</h1>
+<h1>CASHIMIR SOCKS5</h1>
+<p><strong>CASHIMIR SOCKS5</strong> — это расширение для браузера, которое позволяет легко управлять подключением к SOCKS5-прокси, отображать текущий IP и автоматически отключаться при возникновении ошибок.</p>
 
-<p>This Chrome extension allows you to easily connect and disconnect from a SOCKS5 proxy server hosted on your own server. With a simple click, you can switch between your regular internet connection and the secure connection provided by the VPN.</p>
-
-<h2>Features</h2>
+<h2>Особенности</h2>
 <ul>
-    <li>Toggle VPN connection on and off with buttons</li>
-    <li>Real-time IP address display</li>
-    <li>Notification of successful connection to the VPN</li>
-    <li>Automatic disconnection on failed VPN connection</li>
+  <li>Управление прокси одним кликом.</li>
+  <li>Отображение текущего IP-адреса.</li>
+  <li>Автоматическое отключение при ошибках прокси (например, если подключение к прокси не удалось).</li>
+  <li>Удобная форма для ввода данных прокси-сервера (IP, порт, логин, пароль).</li>
+  <li>Поддержка SOCKS5-прокси с аутентификацией.</li>
 </ul>
 
-<h2>Installation</h2>
+<h2>Использование</h2>
 <ol>
-    <li>Download the extension files by clicking the link below:</li>
-    <li><a href="https://github.com/FSystem88/vpn-for-chrome/archive/refs/heads/main.zip">Download VPN for Chrome</a></li>
-    <li>Extract the downloaded ZIP file to a directory on your computer.</li>
-    <li>Open Chrome and navigate to <strong>chrome://extensions/</strong>.</li>
-    <li>Enable "Developer mode" by toggling the switch in the top right corner.</li>
-    <li>Click on "Load unpacked" and select the directory where you extracted the extension files.</li>
-    <li>The VPN for Chrome extension should now be installed and ready to use!</li>
+  <li>Заполните данные прокси-сервера в форме (IP, порт, логин и пароль).</li>
+  <li>Нажмите "Connect", чтобы подключиться к прокси.</li>
+  <li>Отображается статус подключения и текущий IP-адрес.</li>
+  <li>Для отключения прокси нажмите кнопку "OFF".</li>
+  <li>Используйте кнопку "Logout" для очистки данных и отключения прокси.</li>
 </ol>
 
-<h2>Configuration</h2>
-<p>Before using the extension, make sure to configure the following parameters in the <code>background.js</code> file:</p>
-<ul>
-    <li><strong>Line 6:</strong> Update <code>host = 'YOUR_SERVER_IP';</code> with your server's IP address.</li>
-    <li><strong>Line 7:</strong> Update <code>port = YOUR_SERVER_PORT;</code> with the port number of your SOCKS5 proxy (default is usually 1080).</li>
-    <li><strong>Line 29:</strong> Update <code>username = 'YOUR_USERNAME';</code> with your SOCKS5 proxy username.</li>
-    <li><strong>Line 30:</strong> Update <code>password = 'YOUR_PASSWORD';</code> with your SOCKS5 proxy password.</li>
-</ul>
+<h2>Скриншоты</h2>
+<p>Пример интерфейса:</p>
+<img src="screenshot1.png" alt="CASHIMIR SOCKS5 Login Interface" width="300">
+<img src="screenshot2.png" alt="CASHIMIR SOCKS5 Main Interface" width="300">
 
-<p>And for <code>popup.js</code> file:</p>
-<ul>
-    <li><strong>Line 5:</strong> Update <code>vpnIP = 'YOUR_SERVER_IP';</code> with your server's IP address.</li>
-</ul>
+<h2>Установка</h2>
+<p>Чтобы установить расширение:</p>
+<ol>
+  <li>Скачайте <a href="https://github.com/FSystem88/vpn-for-chrome/archive/refs/heads/main.zip">архив</a> и распакуйте в корень диска</li>
+  <li>Откройте настройки браузера и перейдите в раздел "Расширения" (<code>browser://extensions</code>).</li>
+  <li>Включите режим разработчика и нажмите "Загрузить распакованное расширение".</li>
+  <li>Выберите папку с проектом.</li>
+</ol>
 
-<h2>Usage</h2>
-<p>Once the extension is installed and configured, you can easily connect to your SOCKS5 proxy by clicking the "Connect" button. The IP address displayed below will update in real-time, notifying you of the current connection status. If the connection fails, the extension will automatically disconnect.</p>
-
-<h2>License</h2>
-<p>This project is licensed under the MIT License - see the <a href="LICENSE">LICENSE</a> file for details.</p>
-
-<h2>Contact</h2>
-<p>If you have any questions or issues, feel free to open an issue in the GitHub repository.</p>
+<h2>Примечание</h2>
+<p>Папку с расширением нельзя удалять, иначе удалится и из браузера</p>
