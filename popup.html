@@ -1,41 +1,65 @@
+<!-- popup.html -->
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Proxy Controller</title>
+  <title>CASHIMIR VPN</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="container">
-    <!-- Форма для ввода данных прокси -->
     <div id="proxyForm" class="hidden">
-      <h2>Настройки Прокси</h2>
+      <h2>Настройки VPN</h2>
+      <p>Статус: <span id="initialIP">Загрузка...</span></p>
       <form id="form">
-        <label for="proxyIP">IP:</label>
-        <input type="text" id="proxyIP" name="proxyIP" required>
-        
+        <label for="proxyIP">IP-адрес:</label>
+        <input type="text" id="proxyIP" name="proxyIP" required placeholder="192.168.0.1">
         <label for="proxyPort">Порт:</label>
-        <input type="number" id="proxyPort" name="proxyPort" required>
-        
+        <input type="number" id="proxyPort" name="proxyPort" required placeholder="1080">
+        <label for="proxyType">Тип прокси:</label>
+        <select id="proxyType" name="proxyType" required>
+          <option value="socks5">SOCKS5</option>
+          <option value="socks4">SOCKS4</option>
+          <option value="http">HTTP</option>
+          <option value="https">HTTPS</option>
+        </select>
         <label for="proxyLogin">Логин:</label>
-        <input type="text" id="proxyLogin" name="proxyLogin" required>
-        
+        <input type="text" id="proxyLogin" name="proxyLogin" placeholder="Логин (необязательно)">
         <label for="proxyPassword">Пароль:</label>
-        <input type="password" id="proxyPassword" name="proxyPassword" required>
-        
-        <button type="submit" id="connectBtn">Connect</button>
+        <input type="password" id="proxyPassword" name="proxyPassword" placeholder="Пароль (необязательно)">
+        <label for="bypassList">Список исключений:</label>
+        <textarea id="bypassList" name="bypassList" placeholder="*.ru, example.com"></textarea>
+        <div class="form-buttons">
+          <button type="button" id="testBtn" disabled>Протестировать</button>
+          <button type="submit" id="connectBtn" class="hidden">Подключиться</button>
+        </div>
       </form>
+      <div id="testResult" class="test-result"></div>
       <div id="formError" class="error"></div>
-    </div>
-    
-    <!-- Кнопка переключения прокси и кнопка logout -->
-    <div id="proxyControl" class="hidden">
-      <button id="toggleBtn">Загрузка...</button>
-      <div id="logs">
-        <p>Текущий IP: <span id="currentIP">Загрузка...</span></p>
-        <p>Статус подключения: <span id="status">Проверка...</span></p>
+      <div class="settings">
+        <button id="importBtn">Импорт</button>
+        <button id="exportBtn">Экспорт</button>
+        <input type="file" id="importFile" accept=".json" class="hidden">
       </div>
-      <button id="logoutBtn">Logout</button>
+      <div id="history" class="history hidden">
+        <h3>История подключений</h3>
+        <ul id="historyList"></ul>
+      </div>
+    </div>
+    <div id="proxyControl" class="hidden">
+      <button id="toggleBtn" class="hidden">Загрузка...</button>
+      <div id="logs">
+        <p>Статус: <span id="currentIP">Загрузка...</span></p>
+      </div>
+      <div class="bypass-controls">
+        <button id="addBypassBtn" class="bypass-btn">Добавить сайт в исключения</button>
+        <button id="removeBypassBtn" class="bypass-btn hidden">Удалить сайт из исключений</button>
+      </div>
+      <div id="bypassListDisplay" class="bypass-list hidden">
+        <h3>Текущие исключения</h3>
+        <ul id="bypassSites"></ul>
+      </div>
+      <button id="logoutBtn" class="hidden">Выйти</button>
     </div>
   </div>
   <script src="popup.js"></script>

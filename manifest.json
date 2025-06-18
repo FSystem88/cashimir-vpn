@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "CASHIMIR VPN",
-  "version": "2",
-  "description": "Позволяет включать и выключать подключение к SOCKS5-прокси с отображением текущего IP и автоматическим отключением при ошибках.",
+  "version": "3",
+  "description": "Управление SOCKS4/SOCKS5/HTTP/HTTPS-прокси с исключениями, тестированием соединения, историей и экспортом настроек.",
   "permissions": [
     "proxy",
     "storage",
@@ -10,7 +10,9 @@
     "activeTab",
     "webRequest",
     "webRequestBlocking",
-    "notifications"
+    "notifications",
+    "downloads",
+    "tabs"
   ],
   "background": {
     "service_worker": "background.js"

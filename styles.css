@@ -1,10 +1,10 @@
 /* styles.css */
-
 body {
-  font-family: Arial, sans-serif;
-  width: 300px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  width: 320px;
   padding: 20px;
-  background-color: #f5f5f5;
+  background-color: #e6f0fa;
+  color: #333;
 }
 
 .container {
@@ -13,74 +13,132 @@ body {
   align-items: center;
 }
 
-/* Стили для формы */
-#proxyForm {
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(180, 200, 220, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  border-radius: 10px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #357abd, #255a8f);
+}
+
+@supports (scrollbar-width: thin) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #4a90e2 rgba(180, 200, 220, 0.2);
+  }
+}
+
+#proxyForm, #proxyControl {
   width: 100%;
 }
 
 #proxyForm h2 {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
   text-align: center;
+  color: #4a90e2;
+  font-size: 20px;
 }
 
-#proxyForm form {
+#proxyForm p, #logs p {
+  text-align: center;
+  font-size: 14px;
+  color: #555;
+}
+
+#form {
   display: flex;
   flex-direction: column;
 }
 
-#proxyForm label {
-  margin: 5px 0 2px;
+label {
+  margin: 8px 0 4px;
   font-size: 14px;
+  color: #555;
 }
 
-#proxyForm input {
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-#proxyForm button {
+input, select, textarea {
   padding: 10px;
-  background-color: #007bff;
+  margin-bottom: 12px;
+  border: 1px solid #b3cde0;
+  border-radius: 6px;
+  background-color: #f5faff;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+input.invalid, textarea.invalid {
+  border-color: #e57373;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+button, .bypass-btn {
+  padding: 10px;
+  background-color: #4a90e2;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  flex-grow: 1;
+}
+
+button.enabled, .bypass-btn.enabled {
+  background-color: #4a90e2;
+}
+
+button:hover:not(:disabled), .bypass-btn:hover:not(:disabled) {
+  background-color: #357abd;
+  transform: translateY(-1px);
+}
+
+button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
+  background-color: #b0bec5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.test-result, .error {
+  font-size: 14px;
+  margin: 10px 0;
+  text-align: center;
+}
+
+#toggleBtn {
+  width: 120px;
+  height: 50px;
+  margin: 20px auto;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
   color: white;
   font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 100%; /* растянуть по ширине */
-}
-
-#proxyForm button:hover {
-  background-color: #0056b3;
-}
-
-.error {
-  color: #dc3545;
-  font-size: 14px;
-  margin-top: 10px;
-  text-align: center;
-}
-
-/* Стили для панели управления прокси */
-#proxyControl {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-/* Кнопка переключения VPN */
-#toggleBtn {
-  width: 150px;
-  height: 150px;
-  margin: 20px 0;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  color: white;
-  font-size: 24px;
   font-weight: bold;
   transition: background-color 0.3s ease, transform 0.2s ease;
   display: flex;
@@ -89,61 +147,96 @@ body {
 }
 
 #toggleBtn.enabled {
-  background-color: #dc3545; /* Красный для состояния VPN включен (OFF) */
+  background-color: #e57373;
 }
 
 #toggleBtn.disabled {
-  background-color: #28a745; /* Зеленый для состояния VPN выключен (ON) */
+  background-color: #4caf50;
 }
 
 #toggleBtn.loading {
-  background-color: #6c757d; /* Серый для состояния загрузки */
-  cursor: default;
-}
-
-#toggleBtn:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+  background-color: #b0bec5;
 }
 
 #toggleBtn:hover:not(:disabled) {
-  transform: scale(1.05);
+  transform: translateY(-1px);
 }
 
-/* Кнопка Logout */
 #logoutBtn {
-  padding: 10px 20px;
-  background-color: #dc3545; /* Красный */
+  padding: 10px;
+  background-color: #e57373;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   color: white;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
   width: 100%;
 }
 
 #logoutBtn:hover {
-  background-color: #ba2231;
+  background-color: #d66060;
+  transform: translateY(-1px);
 }
 
-/* Логи */
 #logs {
-  margin-top: 10px;
+  margin-top: 15px;
   text-align: center;
+}
+
+.history {
+  margin-top: 20px;
   width: 100%;
 }
 
-#logs p {
-  margin: 5px 0;
+.history h3 {
+  font-size: 16px;
+  color: #4a90e2;
+}
+
+#historyList, #bypassSites {
+  list-style: none;
+  padding: 0;
+}
+
+#historyList li, #bypassSites li {
   font-size: 14px;
+  color: #4a90e2;
+  cursor: pointer;
+  margin: 5px 0;
 }
 
-#status {
-  font-weight: bold;
+#historyList li:hover, #bypassSites li:hover {
+  text-decoration: underline;
 }
 
-/* Скрытые элементы */
+.bypass-controls {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.bypass-list {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.bypass-list h3 {
+  font-size: 16px;
+  color: #4a90e2;
+}
+
+#bypassSites {
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.settings {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 .hidden {
-  display: none;
+  display: none !important;
 }
