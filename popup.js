@@ -20,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const removeBypassBtn = document.getElementById("removeBypassBtn");
   const bypassListDisplay = document.getElementById("bypassListDisplay");
   const bypassSites = document.getElementById("bypassSites");
+  const bypassListControl = document.getElementById("bypassListControl");
+  const saveBypassBtn = document.getElementById("saveBypassBtn");
 
   // Показать форму или панель
   function showForm() {
@@ -78,7 +80,10 @@ document.addEventListener("DOMContentLoaded", () => {
         chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
           const hostname = tabs[0] ? new URL(tabs[0].url).hostname : "";
           const bypassList = data.bypassList || ["localhost", "127.0.0.1"];
-          const isBypassed = bypassList.includes(hostname);
+          const isBypassed = bypassList.some(pattern => {
+            const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+            return regex.test(hostname);
+          });
 
           if (isBypassed) {
             currentIPSpan.textContent = "Сайт в исключении";
@@ -139,8 +144,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const hostname = new URL(tabs[0].url).hostname;
       chrome.storage.local.get(['bypassList'], data => {
         const bypassList = data.bypassList || ["localhost", "127.0.0.1"];
-        addBypassBtn.classList.toggle("hidden", bypassList.includes(hostname));
-        removeBypassBtn.classList.toggle("hidden", !bypassList.includes(hostname));
+        const isBypassed = bypassList.some(pattern => {
+          const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+          return regex.test(hostname);
+        });
+        addBypassBtn.classList.toggle("hidden", isBypassed);
+        removeBypassBtn.classList.toggle("hidden", !isBypassed);
         loadBypassList();
       });
     });
@@ -151,26 +160,23 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.get(['bypassList'], data => {
       bypassSites.innerHTML = "";
       const bypassList = data.bypassList || [];
-      if (bypassList.length > 2) {
-        bypassListDisplay.classList.remove("hidden");
-        bypassList.filter(site => !["localhost", "127.0.0.1"].includes(site)).forEach(site => {
-          const li = document.createElement("li");
-          li.textContent = site;
-          li.title = `Удалить ${site}`;
-          li.addEventListener("click", () => {
-            chrome.runtime.sendMessage({ action: "removeBypassSite", hostname: site }, response => {
-              if (response.status === "success") {
-                loadBypassList();
-                updateBypassControls();
-                fetchAndUpdateIP();
-              }
-            });
+      bypassListControl.value = bypassList.join(", ");
+      bypassListDisplay.classList.remove("hidden");
+      bypassList.filter(site => !["localhost", "127.0.0.1"].includes(site)).forEach(site => {
+        const li = document.createElement("li");
+        li.textContent = site;
+        li.title = `Удалить ${site}`;
+        li.addEventListener("click", () => {
+          chrome.runtime.sendMessage({ action: "removeBypassSite", hostname: site }, response => {
+            if (response.status === "success") {
+              loadBypassList();
+              updateBypassControls();
+              fetchAndUpdateIP();
+            }
           });
-          bypassSites.appendChild(li);
         });
-      } else {
-        bypassListDisplay.classList.add("hidden");
-      }
+        bypassSites.appendChild(li);
+      });
     });
   }
 
@@ -355,6 +361,28 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Сохранение исключений
+  saveBypassBtn.addEventListener("click", () => {
+    const bypassList = bypassListControl.value.split(",").map(s => s.trim()).filter(s => s);
+    if (!validateBypassList(bypassList)) {
+      formError.textContent = "Неверный формат исключений (пример: *.ru, example.com)";
+      bypassListControl.classList.add("invalid");
+      return;
+    }
+    setLoadingState(saveBypassBtn);
+    chrome.storage.local.set({ bypassList }, () => {
+      chrome.runtime.sendMessage({ action: "enableProxy" }, response => {
+        clearLoadingState(saveBypassBtn, "Сохранить исключения");
+        if (response.status === "success") {
+          updateBypassControls();
+          fetchAndUpdateIP();
+        } else {
+          formError.textContent = response.message || "Ошибка сохранения";
+        }
+      });
+    });
+  });
+
   // Выход
   logoutBtn.addEventListener("click", () => {
     setLoadingState(logoutBtn);
@@ -444,6 +472,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function validateBypassList(bypassList) {
-    return bypassList.every(entry => /^(\*|\w+)(\.\w+)*(\.\*)?$/.test(entry));
+    return bypassList.every(entry => {
+      // Проверяем, что строка состоит из букв, цифр, точек, звездочек и дефисов
+      // и не содержит недопустимых символов
+      if (!/^[a-zA-Z0-9.\-*]+$/.test(entry)) return false;
+      
+      // Проверяем, что строка не пустая и не состоит только из звездочек
+      if (entry.trim() === '' || entry.trim() === '*') return false;
+      
+      try {
+        // Пробуем создать регулярное выражение из шаблона
+        // Экранируем точки и заменяем * на .*
+        const regexPattern = '^' + entry.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$';
+        new RegExp(regexPattern);
+        return true;
+      } catch {
+        return false;
+      }
+    });
   }
 });

@@ -69,6 +69,7 @@ label {
 }
 
 input, select, textarea {
+  width: -webkit-fill-available;
   padding: 10px;
   margin-bottom: 12px;
   border: 1px solid #b3cde0;
@@ -98,6 +99,7 @@ textarea {
 }
 
 button, .bypass-btn {
+  width: -webkit-fill-available;
   padding: 10px;
   background-color: #4a90e2;
   border: none;

@@ -55,8 +55,10 @@
         <button id="addBypassBtn" class="bypass-btn">Добавить сайт в исключения</button>
         <button id="removeBypassBtn" class="bypass-btn hidden">Удалить сайт из исключений</button>
       </div>
-      <div id="bypassListDisplay" class="bypass-list hidden">
+      <div id="bypassListDisplay" class="bypass-list">
         <h3>Текущие исключения</h3>
+        <textarea id="bypassListControl" name="bypassListControl" placeholder="*.ru, example.com"></textarea>
+        <button id="saveBypassBtn" class="bypass-btn">Сохранить исключения</button>
         <ul id="bypassSites"></ul>
       </div>
       <button id="logoutBtn" class="hidden">Выйти</button>
