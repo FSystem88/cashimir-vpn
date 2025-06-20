@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CASHIMIR VPN",
-  "version": "3.1",
+  "version": "4",
   "description": "Управление SOCKS4/SOCKS5/HTTP/HTTPS-прокси с парсингом, исключениями, проксируемыми сайтами, тестированием, историей и экспортом настроек.",
   "permissions": [
     "proxy",
