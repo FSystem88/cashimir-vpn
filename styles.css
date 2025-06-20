@@ -101,6 +101,7 @@ textarea {
 button, .bypass-btn {
   width: -webkit-fill-available;
   padding: 10px;
+  margin-top: 5px;
   background-color: #4a90e2;
   border: none;
   border-radius: 6px;
@@ -124,6 +125,14 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   background-color: #b0bec5;
   cursor: not-allowed;
   transform: none;
+}
+
+#stopFindProxyBtn {
+  background-color: #e57373;
+}
+
+#stopFindProxyBtn:hover:not(:disabled) {
+  background-color: #d66060;
 }
 
 .test-result, .error {
@@ -166,6 +175,7 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
 
 #logoutBtn {
   padding: 10px;
+  margin-top: 5px;
   background-color: #e57373;
   border: none;
   border-radius: 6px;
@@ -191,24 +201,24 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   width: 100%;
 }
 
-.history h3 {
+.history h3, .bypass-list h3 {
   font-size: 16px;
   color: #4a90e2;
 }
 
-#historyList, #bypassSites {
+#historyList, #bypassSites, #proxyOnlySites {
   list-style: none;
   padding: 0;
 }
 
-#historyList li, #bypassSites li {
+#historyList li, #bypassSites li, #proxyOnlySites li {
   font-size: 14px;
   color: #4a90e2;
   cursor: pointer;
   margin: 5px 0;
 }
 
-#historyList li:hover, #bypassSites li:hover {
+#historyList li:hover, #bypassSites li:hover, #proxyOnlySites li:hover {
   text-decoration: underline;
 }
 
@@ -216,6 +226,7 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   display: flex;
   gap: 10px;
   margin: 10px 0;
+  flex-wrap: wrap;
 }
 
 .bypass-list {
@@ -223,12 +234,7 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   width: 100%;
 }
 
-.bypass-list h3 {
-  font-size: 16px;
-  color: #4a90e2;
-}
-
-#bypassSites {
+#bypassSites, #proxyOnlySites {
   max-height: 100px;
   overflow-y: auto;
 }

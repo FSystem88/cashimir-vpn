@@ -11,6 +11,11 @@
     <div id="proxyForm" class="hidden">
       <h2>Настройки VPN</h2>
       <p>Статус: <span id="initialIP">Загрузка...</span></p>
+      <h3>Поиск бесплатного прокси:</h3>
+      <button id="findProxyBtn" class="bypass-btn">Найти прокси</button>
+      <button id="stopFindProxyBtn" class="bypass-btn hidden">Остановить поиск</button>
+      <p>Проверено прокси: <span id="proxyTestCount">0</span></p>
+      <h3>Ввести свой прокси:</h3>
       <form id="form">
         <label for="proxyIP">IP-адрес:</label>
         <input type="text" id="proxyIP" name="proxyIP" required placeholder="192.168.0.1">
@@ -29,6 +34,8 @@
         <input type="password" id="proxyPassword" name="proxyPassword" placeholder="Пароль (необязательно)">
         <label for="bypassList">Список исключений:</label>
         <textarea id="bypassList" name="bypassList" placeholder="*.ru, example.com"></textarea>
+        <label for="proxyOnlyList">Список проксируемых сайтов:</label>
+        <textarea id="proxyOnlyList" name="proxyOnlyList" placeholder="example.org, *.com"></textarea>
         <div class="form-buttons">
           <button type="button" id="testBtn" disabled>Протестировать</button>
           <button type="submit" id="connectBtn" class="hidden">Подключиться</button>
@@ -50,16 +57,25 @@
       <button id="toggleBtn" class="hidden">Загрузка...</button>
       <div id="logs">
         <p>Статус: <span id="currentIP">Загрузка...</span></p>
+        <p>Проверено прокси: <span id="proxyTestCountControl">0</span></p>
       </div>
       <div class="bypass-controls">
         <button id="addBypassBtn" class="bypass-btn">Добавить сайт в исключения</button>
-        <button id="removeBypassBtn" class="bypass-btn hidden">Удалить сайт из исключений</button>
+        <button id="addProxyOnlyBtn" class="bypass-btn">Добавить сайт в прокси</button>
+        <button id="removeBypassBtn" class="bypass-btn hidden">Удалить из исключений</button>
+        <button id="removeProxyOnlyBtn" class="bypass-btn hidden">Удалить из прокси</button>
       </div>
       <div id="bypassListDisplay" class="bypass-list">
         <h3>Текущие исключения</h3>
         <textarea id="bypassListControl" name="bypassListControl" placeholder="*.ru, example.com"></textarea>
         <button id="saveBypassBtn" class="bypass-btn">Сохранить исключения</button>
         <ul id="bypassSites"></ul>
+      </div>
+      <div id="proxyOnlyListDisplay" class="bypass-list">
+        <h3>Проксируемые сайты</h3>
+        <textarea id="proxyOnlyListControl" name="proxyOnlyListControl" placeholder="example.org, *.com"></textarea>
+        <button id="saveProxyOnlyBtn" class="bypass-btn">Сохранить проксируемые</button>
+        <ul id="proxyOnlySites"></ul>
       </div>
       <button id="logoutBtn" class="hidden">Выйти</button>
     </div>

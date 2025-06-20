@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "CASHIMIR VPN",
-  "version": "3",
-  "description": "Управление SOCKS4/SOCKS5/HTTP/HTTPS-прокси с исключениями, тестированием соединения, историей и экспортом настроек.",
+  "version": "3.1",
+  "description": "Управление SOCKS4/SOCKS5/HTTP/HTTPS-прокси с парсингом, исключениями, проксируемыми сайтами, тестированием, историей и экспортом настроек.",
   "permissions": [
     "proxy",
     "storage",
@@ -27,6 +27,7 @@
     }
   },
   "host_permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "http://pubproxy.com/*"
   ]
 }
