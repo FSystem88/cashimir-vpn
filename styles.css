@@ -13,6 +13,20 @@ body {
   align-items: center;
 }
 
+.topbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-icon { width: 20px; height: 20px; }
+.brand-name { font-weight: 600; color: #255a8f; }
+
+/* topbar switch uses .switch */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -93,20 +107,17 @@ textarea {
   min-height: 60px;
 }
 
-.form-buttons {
-  display: flex;
-  gap: 10px;
-}
+.form-buttons { display: flex; gap: 8px; }
 
 button, .bypass-btn {
   width: -webkit-fill-available;
-  padding: 10px;
-  margin-top: 5px;
+  padding: 8px;
+  margin-top: 4px;
   background-color: #4a90e2;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   flex-grow: 1;
@@ -146,7 +157,7 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   height: 50px;
   margin: 20px auto;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
   color: white;
   font-size: 16px;
@@ -178,7 +189,7 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   margin-top: 5px;
   background-color: #e57373;
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
   color: white;
   font-size: 14px;
   cursor: pointer;
@@ -201,6 +212,14 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   width: 100%;
 }
 
+.card { width: 100%; background: #f5faff; border: 1px solid #b3cde0; border-radius: 12px; padding: 10px; margin: 10px 0; }
+.profiles { display: flex; gap: 8px; }
+.list { list-style: none; padding: 0; margin: 8px 0 0; max-height: 100px; overflow-y: auto; }
+.list li { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px dashed #b3cde0; }
+.list li button { width: auto; padding: 4px 6px; margin: 0 0 0 6px; }
+
+.latency { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
+
 .history h3, .bypass-list h3 {
   font-size: 16px;
   color: #4a90e2;
@@ -222,17 +241,16 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
   text-decoration: underline;
 }
 
-.bypass-controls {
-  display: flex;
-  gap: 10px;
-  margin: 10px 0;
-  flex-wrap: wrap;
-}
+.bypass-controls { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.bypass-controls .bypass-btn { flex: 1 1 calc(50% - 8px); }
 
 .bypass-list {
   margin-top: 10px;
   width: 100%;
 }
+
+.btn-row { display: flex; gap: 8px; }
+.btn-row .bypass-btn { flex: 1; }
 
 #bypassSites, #proxyOnlySites {
   max-height: 100px;
@@ -248,3 +266,25 @@ button:disabled, button.disabled, .bypass-btn:disabled, .bypass-btn.disabled {
 .hidden {
   display: none !important;
 }
+
+/* Dark theme */
+body.dark {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+body.dark .brand-name { color: #93c5fd; }
+body.dark input, body.dark select, body.dark textarea { background: #0b1220; color: #e2e8f0; border-color: #334155; }
+body.dark .card { background: #0b1220; border-color: #334155; }
+body.dark #proxyForm h2, body.dark .history h3, body.dark .bypass-list h3 { color: #93c5fd; }
+
+/* iOS-like switch */
+.row { display: flex; align-items: center; justify-content: flex-end; width: 100%; margin: 6px 0; }
+.row.align-right { justify-content: flex-end; gap: 8px; }
+.row-label { font-size: 13px; color: #555; }
+.switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .2s; border-radius: 999px; }
+.slider:before { position: absolute; content: "🌞"; display:flex; align-items:center; justify-content:center; font-size:12px; height: 22px; width: 22px; left: 2px; top: 2px; background-color: white; transition: .2s; border-radius: 50%; }
+.switch input:checked + .slider { background-color: #4a90e2; }
+.switch input:checked + .slider:before { transform: translateX(20px); content: "🌙"; }
+.compact-row .switch { transform: scale(0.9); transform-origin: right center; }

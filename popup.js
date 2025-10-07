@@ -32,6 +32,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const stopFindProxyBtn = document.getElementById("stopFindProxyBtn");
   const proxyTestCount = document.getElementById("proxyTestCount");
   const proxyTestCountControl = document.getElementById("proxyTestCountControl");
+  // New UI elements
+  const latencyBtn = document.getElementById("latencyBtn");
+  const latencyValue = document.getElementById("latencyValue");
+  const copyIPBtn = document.getElementById("copyIPBtn");
+  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  const clearBypassBtn = document.getElementById("clearBypassBtn");
+  const clearProxyOnlyBtn = document.getElementById("clearProxyOnlyBtn");
+  const saveProfileBtn = document.getElementById("saveProfileBtn");
+  const profileNameInput = document.getElementById("profileName");
+  const profilesList = document.getElementById("profilesList");
+  const themeToggleSwitchTop = document.getElementById("themeToggleSwitchTop");
 
   // Показать форму или панель
   function showForm() {
@@ -117,24 +128,29 @@ document.addEventListener("DOMContentLoaded", () => {
           const hostname = tabs[0] ? new URL(tabs[0].url).hostname : "";
           const bypassList = data.bypassList || ["localhost", "127.0.0.1"];
           const proxyOnlyList = data.proxyOnlyList || [];
-          const isBypassed = bypassList.some(pattern => {
+          function expand(list) {
+            const out = [];
+            for (const p of list) {
+              const hasStar = p.includes('*');
+              const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(p);
+              if (hasStar || isIP) out.push(p); else out.push(p, '*.' + p);
+            }
+            return out;
+          }
+          const bypassExpanded = expand(bypassList);
+          const proxyOnlyExpanded = expand(proxyOnlyList);
+          const isBypassed = bypassExpanded.some(pattern => {
             const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
             return regex.test(hostname);
           });
-          const isProxyOnly = proxyOnlyList.length > 0 && proxyOnlyList.some(pattern => {
+          const isProxyOnly = proxyOnlyExpanded.length > 0 && proxyOnlyExpanded.some(pattern => {
             const regex = new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
             return regex.test(hostname);
           });
 
-          if (isBypassed) {
-            currentIPSpan.textContent = "Сайт в исключении";
-            currentIPSpan.style.color = "#ffa726";
-          } else if (response.proxyEnabled && (proxyOnlyList.length === 0 || isProxyOnly)) {
-            fetchIP();
-          } else {
-            currentIPSpan.textContent = "VPN отключен";
-            currentIPSpan.style.color = "#e57373";
-          }
+          const shouldUseProxy = response.proxyEnabled && (proxyOnlyList.length === 0 || isProxyOnly) && !isBypassed;
+          currentIPSpan.textContent = shouldUseProxy ? "Прокси: включен для сайта" : "Прокси: выключен для сайта";
+          currentIPSpan.style.color = shouldUseProxy ? "#4caf50" : "#e57373";
         });
       });
     });
@@ -175,6 +191,119 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         historyDiv.classList.add("hidden");
       }
+    });
+  }
+
+  // Theme
+  function applyTheme(theme) {
+    document.body.classList.toggle('dark', theme === 'dark');
+    if (themeToggleSwitchTop) themeToggleSwitchTop.checked = (theme === 'dark');
+  }
+  themeToggleSwitchTop?.addEventListener('change', (e) => {
+    const next = e.target.checked ? 'dark' : 'light';
+    chrome.storage.local.set({ theme: next }, () => applyTheme(next));
+  });
+
+  // Latency test
+  async function measureLatency(url = 'https://api.ipify.org?format=json') {
+    const start = performance.now();
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) throw new Error('network');
+      await res.text();
+      return Math.round(performance.now() - start);
+    } catch {
+      return null;
+    }
+  }
+  latencyBtn?.addEventListener('click', async () => {
+    latencyValue.textContent = '…';
+    const ms = await measureLatency();
+    latencyValue.textContent = ms == null ? 'ошибка' : `${ms} мс`;
+  });
+
+  // remove copy IP feature (button removed in HTML)
+
+  // Clear lists/history
+  clearHistoryBtn?.addEventListener('click', () => {
+    chrome.storage.local.set({ proxyHistory: [] }, loadHistory);
+  });
+  clearBypassBtn?.addEventListener('click', () => {
+    chrome.storage.local.set({ bypassList: [] }, () => {
+      chrome.runtime.sendMessage({ action: 'enableProxy' }, () => {
+        loadBypassList(); updateListControls(); fetchAndUpdateIP();
+      });
+    });
+  });
+  clearProxyOnlyBtn?.addEventListener('click', () => {
+    chrome.storage.local.set({ proxyOnlyList: [] }, () => {
+      chrome.runtime.sendMessage({ action: 'enableProxy' }, () => {
+        loadProxyOnlyList(); updateListControls(); fetchAndUpdateIP();
+      });
+    });
+  });
+
+  // Profiles
+  function renderProfiles(profiles) {
+    profilesList.innerHTML = '';
+    profiles.forEach((p, idx) => {
+      const li = document.createElement('li');
+      const left = document.createElement('span');
+      left.textContent = p.name;
+      const actions = document.createElement('span');
+      const applyBtn = document.createElement('button');
+      applyBtn.textContent = 'Применить';
+      applyBtn.addEventListener('click', () => applyProfile(p));
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Удалить';
+      delBtn.addEventListener('click', () => deleteProfile(idx));
+      actions.appendChild(applyBtn); actions.appendChild(delBtn);
+      li.appendChild(left); li.appendChild(actions);
+      profilesList.appendChild(li);
+    });
+  }
+  function collectCurrentSettings() {
+    return {
+      proxyIP: document.getElementById('proxyIP').value.trim(),
+      proxyPort: document.getElementById('proxyPort').value.trim(),
+      proxyType: document.getElementById('proxyType').value,
+      proxyLogin: document.getElementById('proxyLogin').value.trim(),
+      proxyPassword: document.getElementById('proxyPassword').value.trim(),
+      bypassList: (document.getElementById('bypassList').value.split(',').map(s=>s.trim()).filter(Boolean)),
+      proxyOnlyList: (document.getElementById('proxyOnlyList').value.split(',').map(s=>s.trim()).filter(Boolean))
+    };
+  }
+  saveProfileBtn?.addEventListener('click', () => {
+    const name = (profileNameInput.value || '').trim();
+    if (!name) return;
+    const settings = collectCurrentSettings();
+    chrome.storage.local.get(['profiles'], data => {
+      const profiles = data.profiles || [];
+      const existingIndex = profiles.findIndex(p => p.name === name);
+      const profile = { name, settings };
+      if (existingIndex >= 0) profiles[existingIndex] = profile; else profiles.push(profile);
+      chrome.storage.local.set({ profiles }, () => renderProfiles(profiles));
+    });
+  });
+  function applyProfile(profile) {
+    const s = profile.settings || {};
+    chrome.storage.local.set({
+      proxyIP: s.proxyIP || '',
+      proxyPort: s.proxyPort || '',
+      proxyType: s.proxyType || 'socks5',
+      proxyLogin: s.proxyLogin || '',
+      proxyPassword: s.proxyPassword || '',
+      bypassList: s.bypassList || [],
+      proxyOnlyList: s.proxyOnlyList || []
+    }, () => {
+      initializeInterface();
+    });
+  }
+  function deleteProfile(index) {
+    chrome.storage.local.get(['profiles'], data => {
+      const profiles = data.profiles || [];
+      profiles.splice(index, 1);
+      chrome.storage.local.set({ profiles }, () => renderProfiles(profiles));
     });
   }
 
@@ -270,7 +399,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Инициализация
   function initializeInterface() {
     chrome.runtime.sendMessage({ action: "getProxyStatus" }, response => {
-      chrome.storage.local.get(['proxyIP', 'proxyPort', 'proxyType', 'proxyLogin', 'proxyPassword', 'bypassList', 'proxyOnlyList'], data => {
+      chrome.storage.local.get(['proxyIP', 'proxyPort', 'proxyType', 'proxyLogin', 'proxyPassword', 'bypassList', 'proxyOnlyList', 'theme', 'profiles'], data => {
         document.getElementById("proxyIP").value = data.proxyIP || "";
         document.getElementById("proxyPort").value = data.proxyPort || "";
         document.getElementById("proxyType").value = data.proxyType || "socks5";
@@ -278,6 +407,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("proxyPassword").value = data.proxyPassword || "";
         document.getElementById("bypassList").value = (data.bypassList || []).join(", ");
         document.getElementById("proxyOnlyList").value = (data.proxyOnlyList || []).join(", ");
+        applyTheme(data.theme || 'light');
+        renderProfiles(data.profiles || []);
+        const isDark = (data.theme || 'light') === 'dark';
+        if (themeToggleSwitchTop) themeToggleSwitchTop.checked = isDark;
         checkFormInputs();
         if (response.proxyEnabled && data.proxyIP && data.proxyPort && data.proxyType) {
           showControl();
@@ -523,13 +656,53 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
       if (!tabs[0]) return;
       const hostname = new URL(tabs[0].url).hostname;
-      chrome.runtime.sendMessage({ action: "removeProxyOnlySite", hostname }, response => {
-        clearLoadingState(removeProxyOnlyBtn, "Удалить из прокси");
-        if (response.status === "success") {
-          updateListControls();
-          fetchAndUpdateIP();
+      chrome.storage.local.get(['bypassList', 'proxyOnlyList'], data => {
+        const bypassList = data.bypassList || [];
+        const proxyOnlyList = data.proxyOnlyList || [];
+        
+        // Проверяем точное совпадение в белом списке
+        const exactMatchIndex = proxyOnlyList.indexOf(hostname);
+        if (exactMatchIndex !== -1) {
+          // Удаляем из белого списка
+          proxyOnlyList.splice(exactMatchIndex, 1);
+          chrome.storage.local.set({ proxyOnlyList }, () => {
+            chrome.runtime.sendMessage({ action: "enableProxy" }, () => {
+              clearLoadingState(removeProxyOnlyBtn, "Удалить из прокси");
+              updateListControls();
+              fetchAndUpdateIP();
+            });
+          });
         } else {
-          formError.textContent = response.message || "Ошибка удаления";
+          // Проверяем паттерн-совпадение в белом списке
+          const patternMatches = proxyOnlyList.some(pattern => {
+            const expanded = pattern.includes('*') || /^\d+\.\d+\.\d+\.\d+$/.test(pattern) 
+              ? [pattern] 
+              : [pattern, '*.' + pattern];
+            return expanded.some(p => {
+              const regex = new RegExp('^' + p.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$');
+              return regex.test(hostname);
+            });
+          });
+          
+          if (patternMatches) {
+            // Сайт попадает под паттерн в белом списке - добавляем в черный список
+            if (!bypassList.includes(hostname)) {
+              bypassList.push(hostname);
+            }
+          } else {
+            // Сайт не в белом списке - добавляем в черный список для блокировки
+            if (!bypassList.includes(hostname)) {
+              bypassList.push(hostname);
+            }
+          }
+          
+          chrome.storage.local.set({ bypassList }, () => {
+            chrome.runtime.sendMessage({ action: "enableProxy" }, () => {
+              clearLoadingState(removeProxyOnlyBtn, "Удалить из прокси");
+              updateListControls();
+              fetchAndUpdateIP();
+            });
+          });
         }
       });
     });
@@ -554,7 +727,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setLoadingState(saveBypassBtn);
       chrome.storage.local.set({ bypassList }, () => {
         chrome.runtime.sendMessage({ action: "enableProxy" }, response => {
-          clearLoadingState(saveBypassBtn, "Сохранить исключения");
+          clearLoadingState(saveBypassBtn, "Сохранить");
           if (response.status === "success") {
             updateListControls();
             fetchAndUpdateIP();
@@ -585,7 +758,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setLoadingState(saveProxyOnlyBtn);
       chrome.storage.local.set({ proxyOnlyList }, () => {
         chrome.runtime.sendMessage({ action: "enableProxy" }, response => {
-          clearLoadingState(saveProxyOnlyBtn, "Сохранить проксируемые");
+          clearLoadingState(saveProxyOnlyBtn, "Сохранить");
           if (response.status === "success") {
             updateListControls();
             fetchAndUpdateIP();

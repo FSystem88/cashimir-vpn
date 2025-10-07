@@ -8,9 +8,20 @@
 </head>
 <body>
   <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <img src="icons/icon32.png" alt="CASHIMIR" class="brand-icon">
+        <span class="brand-name">CASHIMIR VPN</span>
+      </div>
+      <label class="switch" title="Тема">
+        <input id="themeToggleSwitchTop" type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
     <div id="proxyForm" class="hidden">
       <h2>Настройки VPN</h2>
       <p>Статус: <span id="initialIP">Загрузка...</span></p>
+      
       <h3>Поиск бесплатного прокси:</h3>
       <button id="findProxyBtn" class="bypass-btn">Найти прокси</button>
       <button id="stopFindProxyBtn" class="bypass-btn hidden">Остановить поиск</button>
@@ -41,6 +52,14 @@
           <button type="submit" id="connectBtn" class="hidden">Подключиться</button>
         </div>
       </form>
+      <div class="card">
+        <h3>Профили</h3>
+        <div class="profiles">
+          <input type="text" id="profileName" placeholder="Название профиля">
+          <button id="saveProfileBtn">Сохранить профиль</button>
+        </div>
+        <ul id="profilesList" class="list"></ul>
+      </div>
       <div id="testResult" class="test-result"></div>
       <div id="formError" class="error"></div>
       <div class="settings">
@@ -51,13 +70,19 @@
       <div id="history" class="history hidden">
         <h3>История подключений</h3>
         <ul id="historyList"></ul>
+        <button id="clearHistoryBtn" class="bypass-btn">Очистить историю</button>
       </div>
     </div>
     <div id="proxyControl" class="hidden">
       <button id="toggleBtn" class="hidden">Загрузка...</button>
+      
       <div id="logs">
         <p>Статус: <span id="currentIP">Загрузка...</span></p>
-        <p>Проверено прокси: <span id="proxyTestCountControl">0</span></p>
+        <p id="proxyTestCountControlRow">Проверено прокси: <span id="proxyTestCountControl">0</span></p>
+        <div class="latency">
+          <span>Пинг: <strong id="latencyValue">—</strong></span>
+          <button id="latencyBtn" class="bypass-btn">Измерить</button>
+        </div>
       </div>
       <div class="bypass-controls">
         <button id="addBypassBtn" class="bypass-btn">Добавить сайт в исключения</button>
@@ -68,13 +93,19 @@
       <div id="bypassListDisplay" class="bypass-list">
         <h3>Текущие исключения</h3>
         <textarea id="bypassListControl" name="bypassListControl" placeholder="*.ru, example.com"></textarea>
-        <button id="saveBypassBtn" class="bypass-btn">Сохранить исключения</button>
+        <div class="btn-row">
+          <button id="saveBypassBtn" class="bypass-btn">Сохранить</button>
+          <button id="clearBypassBtn" class="bypass-btn">Очистить</button>
+        </div>
         <ul id="bypassSites"></ul>
       </div>
       <div id="proxyOnlyListDisplay" class="bypass-list">
         <h3>Проксируемые сайты</h3>
         <textarea id="proxyOnlyListControl" name="proxyOnlyListControl" placeholder="example.org, *.com"></textarea>
-        <button id="saveProxyOnlyBtn" class="bypass-btn">Сохранить проксируемые</button>
+        <div class="btn-row">
+          <button id="saveProxyOnlyBtn" class="bypass-btn">Сохранить</button>
+          <button id="clearProxyOnlyBtn" class="bypass-btn">Очистить</button>
+        </div>
         <ul id="proxyOnlySites"></ul>
       </div>
       <button id="logoutBtn" class="hidden">Выйти</button>

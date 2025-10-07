@@ -45,44 +45,108 @@ chrome.webRequest.onAuthRequired.addListener(
   ["asyncBlocking"]
 );
 
-// Проверка URL на соответствие списков
-function shouldProxyUrl(url, bypassList, proxyOnlyList) {
-  if (!url) return false;
-  const hostname = new URL(url).hostname;
-  const bypassRegexes = (bypassList || []).map(pattern => 
-    new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$')
-  );
-  const proxyOnlyRegexes = (proxyOnlyList || []).map(pattern => 
-    new RegExp('^' + pattern.replace(/\./g, '\\.').replace(/\*/g, '.*') + '$')
-  );
+// Построение PAC-скрипта и конфигурации для списков обхода/белого списка
+function buildProxyConfig({ proxyIP, proxyPort, proxyType, bypassList, proxyOnlyList }) {
+  const normalizedBypass = (bypassList || []).filter(Boolean);
+  const normalizedProxyOnly = (proxyOnlyList || []).filter(Boolean);
+  const defaultBypass = ["localhost", "127.0.0.1"]; // всегда добавляем
 
-  if (bypassRegexes.some(regex => regex.test(hostname))) {
-    return false;
+  const returnProxy = (() => {
+    const hostPort = `${proxyIP}:${parseInt(proxyPort)}`;
+    const type = String(proxyType || '').toLowerCase();
+    if (type === 'socks5') return `SOCKS5 ${hostPort}`;
+    if (type === 'socks4' || type === 'socks') return `SOCKS ${hostPort}`;
+    // http/https
+    return `PROXY ${hostPort}`;
+  })();
+
+  // Если задан белый список, используем PAC, чтобы проксировать ТОЛЬКО эти сайты
+  if (normalizedProxyOnly.length > 0) {
+    function expand(list) {
+      var out = [];
+      for (var i = 0; i < list.length; i++) {
+        var p = String(list[i] || '').trim();
+        if (!p) continue;
+        var hasStar = p.indexOf('*') !== -1;
+        var isIP = /^\d+\.\d+\.\d+\.\d+$/.test(p);
+        if (hasStar || isIP) {
+          out.push(p);
+        } else {
+          out.push(p);
+          out.push('*.' + p);
+        }
+      }
+      return out;
+    }
+    const pac = `function FindProxyForURL(url, host) {
+      var bypassIn = ${JSON.stringify([...new Set([...defaultBypass, ...normalizedBypass])])};
+      var whiteIn = ${JSON.stringify(normalizedProxyOnly)};
+      function expand(list) {
+        var out = [];
+        for (var i = 0; i < list.length; i++) {
+          var p = String(list[i] || '').trim();
+          if (!p) continue;
+          var hasStar = p.indexOf('*') !== -1;
+          var isIP = /^\\d+\\.\\d+\\.\\d+\\.\\d+$/.test(p);
+          if (hasStar || isIP) {
+            out.push(p);
+          } else {
+            out.push(p);
+            out.push('*.' + p);
+          }
+        }
+        return out;
+      }
+      var bypass = expand(bypassIn);
+      var white = expand(whiteIn);
+      function match(list) {
+        for (var i = 0; i < list.length; i++) {
+          if (shExpMatch(host, list[i])) return true;
+        }
+        return false;
+      }
+      if (match(bypass)) return "DIRECT";
+      if (white.length > 0) {
+        if (match(white)) return ${JSON.stringify(returnProxy)};
+        return "DIRECT";
+      }
+      return ${JSON.stringify(returnProxy)};
+    }`;
+    return {
+      mode: "pac_script",
+      pacScript: { data: pac }
+    };
   }
 
-  if (proxyOnlyList?.length > 0) {
-    return proxyOnlyRegexes.some(regex => regex.test(hostname));
-  }
-
-  return true;
+  // Иначе используем фиксированный прокси с bypassList
+  return {
+    mode: "fixed_servers",
+    rules: {
+      singleProxy: {
+        scheme: String(proxyType || '').toLowerCase(),
+        host: proxyIP,
+        port: parseInt(proxyPort)
+      },
+      bypassList: (() => {
+        const expanded = [];
+        const input = [...new Set([...defaultBypass, ...normalizedBypass])];
+        for (const p of input) {
+          const hasStar = p.includes('*');
+          const isIP = /^\d+\.\d+\.\d+\.\d+$/.test(p);
+          if (hasStar || isIP) {
+            expanded.push(p);
+          } else {
+            expanded.push(p, '*.' + p);
+          }
+        }
+        return expanded;
+      })()
+    }
+  };
 }
 
 // Обработчик запросов
-chrome.webRequest.onBeforeRequest.addListener(
-  (details) => {
-    return new Promise(resolve => {
-      chrome.storage.local.get(['proxyEnabled', 'bypassList', 'proxyOnlyList'], (data) => {
-        if (!data.proxyEnabled || !shouldProxyUrl(details.url, data.bypassList, data.proxyOnlyList)) {
-          resolve({ cancel: false });
-        } else {
-          resolve({ cancel: false });
-        }
-      });
-    });
-  },
-  { urls: ["<all_urls>"] },
-  ["blocking"]
-);
+// onBeforeRequest больше не требуется для маршрутизации: это делает PAC
 
 let isFindingProxy = false;
 let testController = null;
@@ -110,17 +174,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       try {
         await stopProxySearch(); // Останавливаем поиск перед подключением
-        const config = {
-          mode: "fixed_servers",
-          rules: {
-            singleProxy: {
-              scheme: data.proxyType.toLowerCase(),
-              host: data.proxyIP,
-              port: parseInt(data.proxyPort)
-            },
-            bypassList: data.bypassList || ["localhost", "127.0.0.1"]
-          }
-        };
+        const config = buildProxyConfig({
+          proxyIP: data.proxyIP,
+          proxyPort: data.proxyPort,
+          proxyType: data.proxyType,
+          bypassList: data.bypassList,
+          proxyOnlyList: data.proxyOnlyList
+        });
         await setProxy(config);
         await chrome.storage.local.set({ proxyEnabled: true });
         saveToHistory(data.proxyIP, data.proxyPort, data.proxyType);
@@ -247,6 +307,49 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ status: "no_search" });
     });
     return true;
+  } else if (message.action === "getDirectIP") {
+    (async () => {
+      try {
+        const data = await new Promise(resolve => chrome.storage.local.get(['proxyEnabled', 'proxyIP', 'proxyPort', 'proxyType', 'bypassList', 'proxyOnlyList'], resolve));
+        const wasEnabled = !!data.proxyEnabled;
+        let restoreConfig = null;
+        if (wasEnabled && data.proxyIP && data.proxyPort && data.proxyType) {
+          restoreConfig = buildProxyConfig({
+            proxyIP: data.proxyIP,
+            proxyPort: data.proxyPort,
+            proxyType: data.proxyType,
+            bypassList: data.bypassList,
+            proxyOnlyList: data.proxyOnlyList
+          });
+        }
+
+        if (wasEnabled) {
+          await resetProxy();
+        }
+
+        let ip = null;
+        try {
+          const resp = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+          if (resp.ok) {
+            const json = await resp.json();
+            ip = json.ip || null;
+          }
+        } catch (_) {}
+
+        if (wasEnabled && restoreConfig) {
+          try { await setProxy(restoreConfig); } catch (_) {}
+        }
+
+        if (ip) {
+          sendResponse({ status: "success", ip });
+        } else {
+          sendResponse({ status: "error", message: "Не удалось получить IP" });
+        }
+      } catch (e) {
+        sendResponse({ status: "error", message: e?.message || 'Ошибка' });
+      }
+    })();
+    return true;
   }
 });
 
@@ -274,17 +377,13 @@ chrome.webRequest.onErrorOccurred.addListener(
 async function updateProxySettings() {
   const data = await new Promise(resolve => chrome.storage.local.get(['proxyIP', 'proxyPort', 'proxyType', 'bypassList', 'proxyOnlyList', 'proxyEnabled'], resolve));
   if (!data.proxyEnabled || !data.proxyIP || !data.proxyPort || !data.proxyType) return;
-  const config = {
-    mode: "fixed_servers",
-    rules: {
-      singleProxy: {
-        scheme: data.proxyType.toLowerCase(),
-        host: data.proxyIP,
-        port: parseInt(data.proxyPort)
-      },
-      bypassList: data.bypassList || ["localhost", "127.0.0.1"]
-    }
-  };
+  const config = buildProxyConfig({
+    proxyIP: data.proxyIP,
+    proxyPort: data.proxyPort,
+    proxyType: data.proxyType,
+    bypassList: data.bypassList,
+    proxyOnlyList: data.proxyOnlyList
+  });
   try {
     await setProxy(config);
   } catch (error) {
@@ -365,14 +464,17 @@ function testProxyConnection({ proxyIP, proxyPort, proxyType, proxyLogin, proxyP
 // Поиск рабочего прокси
 async function findWorkingProxy(sendResponse) {
   isFindingProxy = true;
-  const fetchProxy = async () => {
+  const fetchProxiesBatch = async (count = 10) => {
     try {
-      const response = await fetch("http://pubproxy.com/api/proxy?speed=10&");
-      const data = await response.json();
-      if (data.count === 0) {
-        throw new Error("Нет доступных прокси");
+      const requests = Array.from({ length: count }, () => fetch("http://pubproxy.com/api/proxy?speed=10&"));
+      const responses = await Promise.allSettled(requests);
+      const jsons = await Promise.all(responses.map(r => r.status === 'fulfilled' ? r.value.json().catch(() => null) : null));
+      const proxies = [];
+      for (const data of jsons) {
+        if (data && data.count > 0 && data.data && data.data[0]) proxies.push(data.data[0]);
       }
-      return data.data[0];
+      if (proxies.length === 0) throw new Error("Нет доступных прокси");
+      return proxies;
     } catch (error) {
       throw new Error("Ошибка получения прокси: " + error.message);
     }
@@ -387,33 +489,36 @@ async function findWorkingProxy(sendResponse) {
         return;
       }
       try {
-        const proxy = await fetchProxy();
-        testCount++;
-        await chrome.storage.local.set({ proxyTestCount: testCount });
-
-        await new Promise((resolve, reject) => {
+        const batch = await fetchProxiesBatch(10);
+        // тестируем до первого удачного параллельно
+        const tests = batch.map(p => new Promise((resolve) => {
           testProxyConnection(
-            { proxyIP: proxy.ip, proxyPort: proxy.port, proxyType: proxy.type },
-            (response) => {
-              if (response.status === "success") {
-                chrome.storage.local.set({
-                  proxyIP: proxy.ip,
-                  proxyPort: proxy.port,
-                  proxyType: proxy.type,
-                  proxyLogin: "",
-                  proxyPassword: ""
-                }, () => {
-                  isFindingProxy = false;
-                  resolve({ status: "success", ip: proxy.ip, port: proxy.port, type: proxy.type, testCount });
-                });
-              } else {
-                reject(new Error(response.message));
-              }
-            },
+            { proxyIP: p.ip, proxyPort: p.port, proxyType: p.type },
+            (resp) => resolve({ p, resp }),
             5000
           );
-        });
-        sendResponse({ status: "success", ip: proxy.ip, port: proxy.port, type: proxy.type, testCount });
+        }));
+        const results = await Promise.all(tests);
+        // обновим счетчик тестов
+        testCount += results.length;
+        await chrome.storage.local.set({ proxyTestCount: testCount });
+
+        const ok = results.find(r => r.resp.status === 'success');
+        if (ok) {
+          const proxy = ok.p;
+          chrome.storage.local.set({
+            proxyIP: proxy.ip,
+            proxyPort: proxy.port,
+            proxyType: proxy.type,
+            proxyLogin: "",
+            proxyPassword: ""
+          }, () => {
+            isFindingProxy = false;
+            sendResponse({ status: "success", ip: proxy.ip, port: proxy.port, type: proxy.type, testCount });
+          });
+        } else {
+          if (isFindingProxy) setTimeout(tryNextProxy, 500);
+        }
       } catch (error) {
         if (isFindingProxy) {
           setTimeout(tryNextProxy, 1000);
